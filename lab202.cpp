@@ -37,10 +37,7 @@ int main()
     }
 
     out = reverse(text) ;
-
     printf("%s\n", out) ;
-
     free(out) ;
-
     return 0 ;
 }

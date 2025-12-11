@@ -21,10 +21,7 @@ int main()
     char out[50];
 
     gets(text);  
-
     reverse(text, out);
-
     printf("%s\n", out);
-
     return 0;
 }
