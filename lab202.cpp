@@ -1,43 +1,29 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
-char* reverse(char str1[])
-{
-    int len = 0, i ;
+char* reverse(char str1[]);
 
-    while (str1[len] != '\0') {
-        len++ ;
-    }
-
-    char *str2 = (char*)malloc(len + 1) ; 
-
-    for (i = 0; i < len; i++) {
-        str2[i] = str1[len - 1 - i] ;
-    }
-
-    str2[len] = '\0' ;
-
-    return str2 ;
+int main() {
+    char text[50] = "I Love You";
+    char *out;
+    
+    out = reverse(text);
+    
+    printf("\"%s\"\n", out);
+    
+    return 0;
 }
 
-int main()
-{
-    char text[50] ;
-    char *out ;
-
-    fgets(text, 50, stdin) ;
-
-    int i = 0;
-    while (text[i] != '\0') {
-        if (text[i] == '\n') {
-            text[i] = '\0' ;
-            break;
-        }
-        i++ ;
+char* reverse(char str1[]) {
+    int length = strlen(str1);
+    int i, j;
+    char temp;
+    
+    for (i = 0, j = length - 1; i < j; i++, j--) {
+        temp = str1[i];
+        str1[i] = str1[j];
+        str1[j] = temp;
     }
-
-    out = reverse(text) ;
-    printf("%s\n", out) ;
-    free(out) ;
-    return 0 ;
+    
+    return str1;
 }
