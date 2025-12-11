@@ -2,38 +2,29 @@
 
 void reverse(char str1[], char str2[])
 {
-    int i, len = 0 ;
+    int i, j;
+    for(i = 0; str1[i] != '\0'; i++);
 
-    while (str1[len] != '\0') {
-        len++ ;
+    j = 0;
+    i--;
+    while(i >= 0){
+        str2[j] = str1[i];
+        j++;
+        i--;
     }
-
-    for (i = 0; i < len; i++) {
-        str2[i] = str1[len - 1 - i] ;
-    }
-
-    str2[len] = '\0' ;
+    str2[j] = '\0';
 }
 
 int main()
 {
-    char text[50] ;
-    char out[50] ;
+    char text[50];
+    char out[50];
 
-    fgets(text, 50, stdin) ;
+    gets(text);  
 
-    int i = 0;
-    while (text[i] != '\0') {
-        if (text[i] == '\n') {
-            text[i] = '\0' ;
-            break;
-        }
-        i++ ;
-    }
+    reverse(text, out);
 
-    reverse(text, out) ;
+    printf("%s\n", out);
 
-    printf("%s\n", out) ;
-
-    return 0 ;
+    return 0;
 }
