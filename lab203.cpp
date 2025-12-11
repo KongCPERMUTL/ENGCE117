@@ -1,37 +1,47 @@
 #include <stdio.h>
+#include <string.h>
 
-void explode(char str1[], char splitter, char str2[][10], int *count)
-{
-    int i = 0, col = 0, row = 0 ;
+void explode(char str1[], char splitter, char str2[][10], int *count);
 
-    while (str1[i] != '\0')
-    {
-        if (str1[i] == splitter) {
-            str2[row][col] = '\0' ;
-            row++;
-            col = 0 ;
-        } else {
-            str2[row][col] = str1[i] ;
-            col++ ;
-        }
-        i++ ;
+int main() {
+    char str_in[] = "/I/Love/You";
+    char split_char = '/';
+    char out[20][10];
+    int num;
+    int i;
+    
+    explode(str_in, split_char, out, &num);
+    
+    for (i = 0; i < num; i++) {
+        printf("str2[%d] = \"%s\"\n", i, out[i]);
     }
-
-    str2[row][col] = '\0' ;
-    *count = row + 1 ;
+    
+    printf("count = %d\n", num);
+    
+    return 0;
 }
 
-int main()
-{
-    char out[20][10] ;
-    int num ;
+void explode(char str1[], char splitter, char str2[][10], int *count) {
+    int str1_len = strlen(str1);
+    int current_part = 0;
+    int current_char = 0;
+    int i;
 
-    explode("I/Love/You", '/', out, &num) ;
-
-    // ทดสอบแสดงผล (ใส่ไว้ให้ดู)
-    for (int i = 0; i < num; i++) {
-        printf("%s\n", out[i]) ;
+    *count = 0; 
+    
+    for (i = 0; i < str1_len; i++) {
+        if (str1[i] == splitter) {
+            str2[current_part][current_char] = '\0';
+            current_part++;
+            current_char = 0;
+            (*count)++;
+            
+        } else {
+            str2[current_part][current_char] = str1[i];
+            current_char++;
+        }
     }
-
-    return 0 ;
+    
+    str2[current_part][current_char] = '\0';
+    (*count)++;
 }
