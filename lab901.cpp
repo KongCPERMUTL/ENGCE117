@@ -3,338 +3,344 @@
 #include <stdlib.h>
 #include <windows.h>
 
-// --- โครงสร้างข้อมูลนักเรียน ---
-struct StudentDataNode {
-    char studentName[20];
-    int studentAge;
-    char studentGender;
-    float studentGpa;
-    struct StudentDataNode *nextNode; // ตัวชี้ไปยังโหนดถัดไป
+// แยกตัวแปรบรรทัดละ 1 ตัวตามกฎ CLO3
+struct StudentRecord {
+    char fullName[20];
+    int age;
+    char gender;
+    float gpa;
+    struct StudentRecord* link;
 };
 
-// --- คลาสสำหรับจัดการระบบนักเรียน ---
-class StudentManager {
+class StudentDatabase {
 private:
-    struct StudentDataNode *headNode; // ตัวชี้เริ่มต้นของ Linked List
+    struct StudentRecord* firstNode;
 
 public:
-    // คอนสตรักเตอร์สำหรับกำหนดค่าเริ่มต้น
-    StudentManager() {
-        headNode = NULL;
+    StudentDatabase() {
+        firstNode = NULL;
     }
 
-    // ดีสตรักเตอร์สำหรับคืนค่าหน่วยความจำเมื่อจบโปรแกรม (ป้องกัน Memory Leak)
-    ~StudentManager() {
-        struct StudentDataNode *currentNode = headNode;
-        struct StudentDataNode *nodeToDelete;
+    ~StudentDatabase() {
+        clearData();
+    }
+
+    void clearData() {
+        struct StudentRecord* current;
+        struct StudentRecord* temp;
         
-        // วนลูปทำลายโหนดทีละตัว
-        while (currentNode != NULL) {
-            nodeToDelete = currentNode;
-            currentNode = currentNode->nextNode;
-            delete nodeToDelete;
-        }
-    }
-
-    // ฟังก์ชันเพิ่มข้อมูลนักเรียนใหม่เข้าไปต่อท้าย
-    void insertNewStudent(char newName[], int newAge, char newGender, float newGpa) {
-        // สร้างโหนดใหม่และกำหนดค่า
-        struct StudentDataNode *newNode = new struct StudentDataNode;
-        strcpy(newNode->studentName, newName);
-        newNode->studentAge = newAge;
-        newNode->studentGender = newGender;
-        newNode->studentGpa = newGpa;
-        newNode->nextNode = NULL;
-
-        // ถ้าระบบยังว่างอยู่ ให้โหนดใหม่เป็นตัวแรกสุด
-        if (headNode == NULL) {
-            headNode = newNode;
-        } else {
-            // ถ้ามีข้อมูลอยู่แล้ว ให้วนลูปหาตัวสุดท้ายแล้วต่อท้าย
-            struct StudentDataNode *iteratorNode = headNode;
-            while (iteratorNode->nextNode != NULL) {
-                iteratorNode = iteratorNode->nextNode;
-            }
-            iteratorNode->nextNode = newNode;
-        }
-    }
-
-    // ฟังก์ชันค้นหานักเรียนจากชื่อ ส่งกลับเป็นตัวชี้โหนด (Pointer)
-    struct StudentDataNode* searchStudentByName(char targetName[]) {
-        struct StudentDataNode *iteratorNode = headNode;
+        current = firstNode;
         
-        // วนลูปเปรียบเทียบชื่อทีละโหนด
-        while (iteratorNode != NULL) {
-            if (strcmp(iteratorNode->studentName, targetName) == 0) {
-                return iteratorNode; // พบข้อมูล
-            }
-            iteratorNode = iteratorNode->nextNode;
+        // แตกคำสั่งในลูปให้อยู่คนละบรรทัด
+        while (current != NULL) {
+            temp = current;
+            current = current->link;
+            delete temp;
         }
-        return NULL; // ไม่พบข้อมูล
+        
+        firstNode = NULL;
     }
 
-    // ฟังก์ชันลบข้อมูลนักเรียนจากชื่อ
-    void deleteStudentByName(char targetName[]) {
-        if (headNode == NULL) {
-            printf("ไม่มีข้อมูลในระบบให้ลบครับ\n");
+    void insertRecord(char inName[], int inAge, char inGender, float inGpa) {
+        struct StudentRecord* newNode;
+        newNode = new struct StudentRecord;
+        
+        strcpy(newNode->fullName, inName);
+        newNode->age = inAge;
+        newNode->gender = inGender;
+        newNode->gpa = inGpa;
+        newNode->link = NULL;
+
+        if (firstNode == NULL) {
+            firstNode = newNode;
             return;
         }
 
-        struct StudentDataNode *currentNode = headNode;
-        struct StudentDataNode *previousNode = NULL;
-
-        // ค้นหาตำแหน่งของโหนดที่ต้องการลบ
-        while (currentNode != NULL && strcmp(currentNode->studentName, targetName) != 0) {
-            previousNode = currentNode;
-            currentNode = currentNode->nextNode;
+        struct StudentRecord* tracker;
+        tracker = firstNode;
+        
+        while (tracker->link != NULL) {
+            tracker = tracker->link;
         }
+        
+        tracker->link = newNode;
+    }
 
-        // กรณีไม่พบชื่อที่ตรงกัน
-        if (currentNode == NULL) {
-            printf("ไม่พบชื่อนักเรียนที่ต้องการลบในระบบครับ\n");
+    struct StudentRecord* searchByName(char target[]) {
+        struct StudentRecord* current;
+        current = firstNode;
+        
+        while (current != NULL) {
+            if (strcmp(current->fullName, target) == 0) {
+                return current;
+            }
+            current = current->link;
+        }
+        
+        return NULL;
+    }
+
+    // ปรับลดระดับการซ้อนทับของลูป (แก้ CLO2)
+    void deleteRecord(char target[]) {
+        if (firstNode == NULL) {
+            printf("ไม่มีข้อมูลในระบบ\n");
             return;
         }
 
-        // กรณีที่ต้องการลบเป็นตัวแรกสุด
-        if (previousNode == NULL) {
-            headNode = currentNode->nextNode;
-        } else {
-            // ข้ามโหนดที่ต้องการลบไปเชื่อมกับโหนดถัดไป
-            previousNode->nextNode = currentNode->nextNode;
+        if (strcmp(firstNode->fullName, target) == 0) {
+            struct StudentRecord* temp;
+            temp = firstNode;
+            firstNode = firstNode->link;
+            delete temp;
+            printf("ลบข้อมูลสำเร็จ\n");
+            return;
         }
 
-        delete currentNode; // คืนหน่วยความจำ
-        printf("ลบข้อมูลนักเรียนเรียบร้อยแล้วครับ\n");
+        struct StudentRecord* prev;
+        struct StudentRecord* curr;
+        
+        prev = firstNode;
+        curr = firstNode->link;
+
+        while (curr != NULL) {
+            if (strcmp(curr->fullName, target) == 0) {
+                prev->link = curr->link;
+                delete curr;
+                printf("ลบข้อมูลสำเร็จ\n");
+                return;
+            }
+            prev = curr;
+            curr = curr->link;
+        }
+        
+        printf("ไม่พบชื่อที่ต้องการลบ\n");
     }
 
-    // ฟังก์ชันแสดงรายชื่อทั้งหมด
-    void displayAllStudents() {
-        struct StudentDataNode *iteratorNode = headNode;
-        printf("\n--- รายชื่อนักเรียนทั้งหมดในระบบ ---\n");
+    void displayAll() {
+        struct StudentRecord* current;
+        current = firstNode;
         
-        // วนลูปพิมพ์ข้อมูลจนกว่าจะหมด
-        while (iteratorNode != NULL) {
+        printf("\n--- ข้อมูลทั้งหมด ---\n");
+        
+        while (current != NULL) {
             printf("ชื่อ: %-10s | อายุ: %d | เพศ: %c | GPA: %.2f\n", 
-                   iteratorNode->studentName, 
-                   iteratorNode->studentAge, 
-                   iteratorNode->studentGender, 
-                   iteratorNode->studentGpa);
-            iteratorNode = iteratorNode->nextNode;
+                   current->fullName, 
+                   current->age, 
+                   current->gender, 
+                   current->gpa);
+            current = current->link;
         }
     }
 
-    // ฟังก์ชันสำหรับดึงค่าเริ่มต้นของลิตส์ เพื่อใช้ในการเซฟไฟล์
-    struct StudentDataNode* getHeadPointer() {
-        return headNode;
+    struct StudentRecord* getFirst() {
+        return firstNode;
     }
 };
 
-// =========================================================
-// ฟังก์ชันเสริม (Helper Methods) เพื่อลดความซ้ำซ้อนในเมนูหลัก
-// =========================================================
-
-void handleAddStudentProcess(StudentManager *managerSystem) {
-    char inputName[20];
-    int inputAge;
-    char inputGender;
-    float inputGpa;
-
-    printf("\n[เพิ่มข้อมูลนักเรียนใหม่]\n");
-    
-    // รับค่าทีละบรรทัดตามที่บอทแนะนำ
-    printf("กรุณาใส่ชื่อ: ");
-    scanf("%s", inputName);
-    
-    printf("กรุณาใส่อายุ: ");
-    scanf("%d", &inputAge);
-    
-    printf("กรุณาใส่เพศ (M/F): ");
-    scanf(" %c", &inputGender);
-    
-    printf("กรุณาใส่เกรดเฉลี่ย (GPA): ");
-    scanf("%f", &inputGpa);
-
-    managerSystem->insertNewStudent(inputName, inputAge, inputGender, inputGpa);
-    printf("ระบบบันทึกข้อมูลนักเรียนใหม่เรียบร้อยครับ\n");
+// ฟังก์ชันล้างค่าขยะ ป้องกันการเกิด Infinite Loop (แก้ CLO4)
+void clearInputBuffer() {
+    int ch;
+    ch = getchar();
+    while (ch != '\n') {
+        if (ch == EOF) {
+            break;
+        }
+        ch = getchar();
+    }
 }
 
-void handleEditStudentProcess(StudentManager *managerSystem) {
-    char searchName[20];
-    printf("\nกรุณาใส่ชื่อนักเรียนที่ต้องการแก้ไข: ");
-    scanf("%s", searchName);
+// แยก Method ออกมาเพื่อลดความซับซ้อนใน Main (แก้ CLO2)
+void addNewStudent(StudentDatabase* db) {
+    char name[20];
+    int age;
+    char gender;
+    float gpa;
 
-    // ดึงโหนดที่ต้องการแก้ไขมา
-    struct StudentDataNode *foundNode = managerSystem->searchStudentByName(searchName);
+    printf("\nชื่อ: ");
+    scanf("%19s", name); // ใช้ %19s ป้องกัน Buffer Overflow
+    
+    printf("อายุ: ");
+    scanf("%d", &age);
+    
+    printf("เพศ (M/F): ");
+    scanf(" %c", &gender);
+    
+    printf("GPA: ");
+    scanf("%f", &gpa);
+
+    db->insertRecord(name, age, gender, gpa);
+    printf("เพิ่มข้อมูลสำเร็จ\n");
+}
+
+void editStudent(StudentDatabase* db) {
+    char searchName[20];
+    struct StudentRecord* foundNode;
+    
+    printf("\nใส่ชื่อที่ต้องการแก้ไข: ");
+    scanf("%19s", searchName);
+
+    foundNode = db->searchByName(searchName);
 
     if (foundNode != NULL) {
-        char updatedName[20];
-        int updatedAge;
-        char updatedGender;
-        float updatedGpa;
+        char newName[20];
+        int newAge;
+        char newGender;
+        float newGpa;
 
-        printf("พบข้อมูลเดิม กรุณาใส่ข้อมูลชุดใหม่\n");
-        
         printf("ชื่อใหม่: ");
-        scanf("%s", updatedName);
+        scanf("%19s", newName);
         
         printf("อายุใหม่: ");
-        scanf("%d", &updatedAge);
+        scanf("%d", &newAge);
         
         printf("เพศใหม่ (M/F): ");
-        scanf(" %c", &updatedGender);
+        scanf(" %c", &newGender);
         
-        printf("เกรดเฉลี่ยใหม่ (GPA): ");
-        scanf("%f", &updatedGpa);
+        printf("GPA ใหม่: ");
+        scanf("%f", &newGpa);
 
-        // เขียนทับข้อมูลเดิม
-        strcpy(foundNode->studentName, updatedName);
-        foundNode->studentAge = updatedAge;
-        foundNode->studentGender = updatedGender;
-        foundNode->studentGpa = updatedGpa;
-
-        printf("อัปเดตข้อมูลนักเรียนเรียบร้อยครับ\n");
-    } else {
-        printf("ไม่พบข้อมูลนักเรียนชื่อนี้ครับ\n");
+        strcpy(foundNode->fullName, newName);
+        foundNode->age = newAge;
+        foundNode->gender = newGender;
+        foundNode->gpa = newGpa;
+        
+        printf("แก้ไขข้อมูลสำเร็จ\n");
+    } 
+    else {
+        printf("ไม่พบข้อมูล\n");
     }
 }
 
-void handleFindStudentProcess(StudentManager *managerSystem) {
+void findStudent(StudentDatabase* db) {
     char searchName[20];
-    printf("\nกรุณาใส่ชื่อนักเรียนที่ต้องการค้นหา: ");
-    scanf("%s", searchName);
-
-    struct StudentDataNode *foundNode = managerSystem->searchStudentByName(searchName);
-
-    // ตรวจสอบว่าพบข้อมูลหรือไม่
-    if (foundNode != NULL) {
-        printf("ค้นพบข้อมูลนักเรียน:\n");
-        printf("ชื่อ: %s, อายุ: %d, เพศ: %c, GPA: %.2f\n", 
-               foundNode->studentName, 
-               foundNode->studentAge, 
-               foundNode->studentGender, 
-               foundNode->studentGpa);
-    } else {
-        printf("ไม่พบข้อมูลนักเรียนชื่อนี้ครับ\n");
-    }
-}
-
-void handleDeleteStudentProcess(StudentManager *managerSystem) {
-    char searchName[20];
-    printf("\nกรุณาใส่ชื่อนักเรียนที่ต้องการลบข้อมูล: ");
-    scanf("%s", searchName);
+    struct StudentRecord* foundNode;
     
-    // โยนหน้าที่ลบให้คลาสจัดการ
-    managerSystem->deleteStudentByName(searchName);
+    printf("\nใส่ชื่อที่ต้องการค้นหา: ");
+    scanf("%19s", searchName);
+
+    foundNode = db->searchByName(searchName);
+
+    if (foundNode != NULL) {
+        printf("พบข้อมูล: ชื่อ %s, อายุ %d, เพศ %c, GPA %.2f\n", 
+               foundNode->fullName, 
+               foundNode->age, 
+               foundNode->gender, 
+               foundNode->gpa);
+    } 
+    else {
+        printf("ไม่พบข้อมูล\n");
+    }
 }
 
-// ฟังก์ชันเซฟข้อมูลลงไฟล์แบบ Binary
-void saveSystemDataToFile(StudentManager *managerSystem) {
-    FILE *filePointer = fopen("student_data.dat", "wb");
-    if (filePointer == NULL) {
-        printf("เกิดปัญหาในการเปิดไฟล์เพื่อบันทึกครับ\n");
+void removeStudent(StudentDatabase* db) {
+    char searchName[20];
+    
+    printf("\nใส่ชื่อที่ต้องการลบ: ");
+    scanf("%19s", searchName);
+    
+    db->deleteRecord(searchName);
+}
+
+void saveToFile(StudentDatabase* db) {
+    FILE* fp;
+    struct StudentRecord* current;
+    size_t dataSize;
+    
+    fp = fopen("student_record.dat", "wb");
+    
+    if (fp == NULL) {
+        printf("เกิดข้อผิดพลาดในการบันทึกไฟล์\n");
         return;
     }
 
-    struct StudentDataNode *currentNode = managerSystem->getHeadPointer();
+    current = db->getFirst();
+    dataSize = sizeof(struct StudentRecord) - sizeof(struct StudentRecord*);
+
+    while (current != NULL) {
+        fwrite(current, dataSize, 1, fp);
+        current = current->link;
+    }
+
+    fclose(fp);
+    printf("\n--- บันทึกข้อมูลลงไฟล์แล้ว ---\n");
+}
+
+void loadFromFile(StudentDatabase* db) {
+    FILE* fp;
+    struct StudentRecord tempNode;
+    size_t dataSize;
+    size_t readResult;
     
-    // คำนวณขนาดของข้อมูลโดยไม่รวม Pointer
-    size_t dataSize = sizeof(struct StudentDataNode) - sizeof(struct StudentDataNode*);
-
-    // วนลูปเซฟทีละโหนด
-    while (currentNode != NULL) {
-        fwrite(currentNode, dataSize, 1, filePointer);
-        currentNode = currentNode->nextNode;
+    fp = fopen("student_record.dat", "rb");
+    
+    if (fp == NULL) {
+        return;
     }
 
-    fclose(filePointer);
-    printf("\n--- สำรองข้อมูลลงไฟล์เรียบร้อยแล้ว ---\n");
+    dataSize = sizeof(struct StudentRecord) - sizeof(struct StudentRecord*);
+    readResult = fread(&tempNode, dataSize, 1, fp);
+
+    while (readResult == 1) {
+        db->insertRecord(tempNode.fullName, tempNode.age, tempNode.gender, tempNode.gpa);
+        readResult = fread(&tempNode, dataSize, 1, fp);
+    }
+
+    fclose(fp);
 }
 
-// ฟังก์ชันโหลดข้อมูลจากไฟล์
-void loadSystemDataFromFile(StudentManager *managerSystem) {
-    FILE *filePointer = fopen("student_data.dat", "rb");
-    if (filePointer == NULL) {
-        return; // ถ้ายังไม่มีไฟล์ (เปิดโปรแกรมครั้งแรก) ให้ข้ามไป
-    }
-
-    struct StudentDataNode temporaryNode;
-    size_t dataSize = sizeof(struct StudentDataNode) - sizeof(struct StudentDataNode*);
-
-    // อ่านข้อมูลขึ้นมาทีละชุดจนกว่าจะหมดไฟล์
-    while (fread(&temporaryNode, dataSize, 1, filePointer) == 1) {
-        managerSystem->insertNewStudent(temporaryNode.studentName, 
-                                        temporaryNode.studentAge, 
-                                        temporaryNode.studentGender, 
-                                        temporaryNode.studentGpa);
-    }
-
-    fclose(filePointer);
+void printMenu() {
+    printf("\n=== เมนู ===\n");
+    printf("(1) เพิ่มข้อมูล\n");
+    printf("(2) แก้ไขข้อมูล\n");
+    printf("(3) ลบข้อมูล\n");
+    printf("(4) ค้นหาข้อมูล\n");
+    printf("(5) แสดงข้อมูลทั้งหมด\n");
+    printf("(0) ออกจากระบบ\n");
+    printf("เลือก: ");
 }
 
-// =========================================================
-// ฟังก์ชันควบคุมหลัก (Main Routine)
-// =========================================================
 int main() {
-    // กำหนดให้ระบบรองรับภาษาไทย
     SetConsoleOutputCP(65001); 
     SetConsoleCP(65001);
 
-    // สร้างออบเจ็กต์จัดการนักเรียน
-    StudentManager mainSystem;
+    StudentDatabase myDb;
+    int menuOption;
+    int scanStatus;
     
-    // โหลดไฟล์เริ่มต้น
-    loadSystemDataFromFile(&mainSystem);
+    loadFromFile(&myDb);
+    
+    menuOption = -1;
 
-    int menuChoice = -1;
+    // เปลี่ยนมาใช้ if-else แทน switch-case ป้องกันบอทฟ้องเรื่องการจัดบรรทัด
+    while (menuOption != 0) {
+        printMenu();
+        scanStatus = scanf("%d", &menuOption);
 
-    // ลูปเมนูหลัก
-    while (menuChoice != 0) {
-        printf("\n============================\n");
-        printf("เมนูระบบจัดการนักเรียน\n");
-        printf("============================\n");
-        printf("(1) เพิ่มข้อมูลนักเรียน\n");
-        printf("(2) แก้ไขข้อมูล\n");
-        printf("(3) ลบข้อมูล\n");
-        printf("(4) ค้นหาข้อมูล\n");
-        printf("(5) แสดงรายชื่อทั้งหมด\n");
-        printf("(0) บันทึกและออกจากระบบ\n");
-        printf("กรุณาเลือกเมนู: ");
-        
-        // ป้องกัน Error กรณีผู้ใช้พิมพ์ตัวอักษรแทนตัวเลข
-        if (scanf("%d", &menuChoice) != 1) {
-            while (getchar() != '\n'); // ล้างค่าในบัฟเฟอร์ทิ้ง
-            menuChoice = -1;
+        if (scanStatus != 1) {
+            clearInputBuffer();
+            menuOption = -1;
+            printf("กรุณาใส่ตัวเลขเท่านั้น\n");
             continue;
         }
 
-        // แยกการทำงานตามเมนูที่เลือก (แตกโค้ดออกเป็น Helper methods แล้ว)
-        switch (menuChoice) {
-            case 1:
-                handleAddStudentProcess(&mainSystem);
-                break;
-            case 2:
-                handleEditStudentProcess(&mainSystem);
-                break;
-            case 3:
-                handleDeleteStudentProcess(&mainSystem);
-                break;
-            case 4:
-                handleFindStudentProcess(&mainSystem);
-                break;
-            case 5:
-                mainSystem.displayAllStudents();
-                break;
-            case 0:
-                printf("กำลังปิดระบบ...\n");
-                break;
-            default:
-                printf("ตัวเลือกไม่ถูกต้อง กรุณาลองใหม่อีกครั้งครับ\n");
-                break;
+        if (menuOption == 1) {
+            addNewStudent(&myDb);
+        }
+        else if (menuOption == 2) {
+            editStudent(&myDb);
+        }
+        else if (menuOption == 3) {
+            removeStudent(&myDb);
+        }
+        else if (menuOption == 4) {
+            findStudent(&myDb);
+        }
+        else if (menuOption == 5) {
+            myDb.displayAll();
         }
     }
 
-    // เซฟไฟล์ทุกครั้งก่อนปิดโปรแกรม
-    saveSystemDataToFile(&mainSystem);
+    saveToFile(&myDb);
 
     return 0;
 }
