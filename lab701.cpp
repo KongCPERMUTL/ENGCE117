@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdio.h>
 
-using namespace std;
-
 struct studentNode {
     char name[20];
     int age;
@@ -41,7 +39,6 @@ int main() {
     listA.GoNext();
     listA.ShowNode();
 
-    // ในโจทย์เขียน InsertNode แต่คลาสชื่อ InsNode เลยแก้ให้ตรงกัน
     listB.InsNode("four", 4, 'D', 4.4);
     listB.InsNode("five", 5, 'E', 5.5);
     listB.InsNode("six", 6, 'F', 6.6);
