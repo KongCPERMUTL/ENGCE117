@@ -1,13 +1,12 @@
-#include <iostream>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 struct studentNode {
     char name[ 20 ] ;
     int age ;
     char sex ;
     float gpa ;
-    struct studentNode *next ; // จำเป็นต้องมีเพื่อเชื่อมโหนด
+    struct studentNode *next ; 
 } ;
 
 class LinkedList {
@@ -18,17 +17,17 @@ public :
     ~LinkedList() ;
     void InsNode( char n[], int a, char s, float g ) ;
     void DelNode() ;
-    void GoNext() ; // เติม void
+    void GoNext() ; 
     virtual void ShowNode() ;
 } ;
 
 class NewList : public LinkedList {
 public :
-    void GoFirst() ; // เติม void
+    void GoFirst() ; 
     virtual void ShowNode() ;
 } ;
 
-// --- เขียนการทำงานของฟังก์ชันตามโจทย์ ---
+// ------------------------------------
 
 LinkedList::LinkedList() {
     start = NULL;
@@ -37,7 +36,7 @@ LinkedList::LinkedList() {
 
 LinkedList::~LinkedList() {
     struct studentNode *temp;
-    while(start != NULL) {
+    while (start != NULL) {
         temp = start;
         start = start->next;
         delete temp;
@@ -89,23 +88,20 @@ void NewList::ShowNode() {
     printf("\n");
 }
 
-// --- โค้ดส่วน main จากโจทย์ ---
-
 int main() {
     LinkedList listA ;
     NewList listB ;
     LinkedList *listC ;
     
-    listA.InsNode( (char*)"one", 1, 'A', 1.1 ) ;
-    listA.InsNode( (char*)"two", 2, 'B', 2.2 ) ;
-    listA.InsNode( (char*)"three", 3, 'C', 3.3 ) ;
+    listA.InsNode( "one", 1, 'A', 1.1 ) ;
+    listA.InsNode( "two", 2, 'B', 2.2 ) ;
+    listA.InsNode( "three", 3, 'C', 3.3 ) ;
     listA.GoNext() ;
     listA.ShowNode() ;
     
-    // แก้ InsertNode เป็น InsNode
-    listB.InsNode( (char*)"four", 4, 'D', 4.4 ) ;
-    listB.InsNode( (char*)"five", 5, 'E', 5.5 ) ;
-    listB.InsNode( (char*)"six", 6, 'F', 6.6 ) ;
+    listB.InsNode( "four", 4, 'D', 4.4 ) ;
+    listB.InsNode( "five", 5, 'E', 5.5 ) ;
+    listB.InsNode( "six", 6, 'F', 6.6 ) ;
     listB.GoNext() ;
     listB.DelNode() ;
     listB.ShowNode() ;
