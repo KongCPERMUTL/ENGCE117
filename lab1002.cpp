@@ -1,31 +1,43 @@
 #include <stdio.h>
 
-// ฟังก์ชันหอคอยฮานอย แบบ Recursive
-void TowerOfHanoi( int n, int source, int aux, int dest ) {
-    // ถ้าเหลือแผ่นเดียว (แผ่นเล็กสุด) ให้ย้ายไปเสาปลายทางได้เลย
-    if ( n == 1 ) {
-        printf( "Disc 1 from %d to %d\n", source, dest ) ;
-        return ;
+#define MINIMUM_DISC_LIMIT 1
+#define DEFAULT_START_PEG 1
+#define DEFAULT_TEMP_PEG 2
+#define DEFAULT_END_PEG 3
+#define TOTAL_DISC_AMOUNT 3
+
+void ExecuteRingTransfer(int ringCount, int sourcePole, int auxPole, int targetPole) {
+    if (ringCount < MINIMUM_DISC_LIMIT) {
+        return;
     }
-    
-    // ย้ายแผ่นที่ n-1 จากต้นทาง ไปพักไว้ก่อน
-    TowerOfHanoi( n - 1, source, dest, aux);
-    
-    // ย้ายแผ่นล่างสุดไปเสาปลายทาง
-    printf( "Disc %d from %d to %d\n", n, source, dest ) ;
-    
-    // ย้ายแผ่นที่พักไว้ ไปทับแผ่นล่างสุดที่เสาปลายทาง
-    TowerOfHanoi( n - 1, aux, source, dest ) ;
+
+    if (ringCount == MINIMUM_DISC_LIMIT) {
+        printf("Disc %d from %d to %d\n", MINIMUM_DISC_LIMIT, sourcePole, targetPole);
+        return;
+    }
+
+    int nextRingLevel;
+    nextRingLevel = ringCount - MINIMUM_DISC_LIMIT;
+
+    ExecuteRingTransfer(nextRingLevel, sourcePole, targetPole, auxPole);
+
+    printf("Disc %d from %d to %d\n", ringCount, sourcePole, targetPole);
+
+    ExecuteRingTransfer(nextRingLevel, auxPole, sourcePole, targetPole);
 }
 
 int main() {
-    int numberOfDiscs = 3 ; // จำนวนแผ่นดิสก์
-    int startPeg = 1 ;      // เสาต้นทาง
-    int tempPeg = 2 ;       // เสาพัก
-    int endPeg = 3 ;        // เสาปลายทาง
+    int discAmount;
+    int startPeg;
+    int tempPeg;
+    int endPeg;
 
-    // เรียกใช้งานฟังก์ชัน
-    TowerOfHanoi( numberOfDiscs, startPeg, tempPeg, endPeg ) ;
+    discAmount = TOTAL_DISC_AMOUNT;
+    startPeg = DEFAULT_START_PEG;
+    tempPeg = DEFAULT_TEMP_PEG;
+    endPeg = DEFAULT_END_PEG;
 
-    return 0 ;
+    ExecuteRingTransfer(discAmount, startPeg, tempPeg, endPeg);
+
+    return 0;
 }
