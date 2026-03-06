@@ -1,32 +1,49 @@
 #include <stdio.h>
 
-long SumLoop( int n ) ;
-long SumRecur( int n ) ;
+long SumLoop(int maxNumber) ;
+long SumRecur(int maxNumber) ;
 
 int main() {
-    int n = 80000; // ค่า n สูงๆ เพื่อให้เกิด run-time error ตอนเรียก Recursion
+    int targetValue ;
+    
+    targetValue = 100000 ; 
 
-    printf( "SumLoop(n) = %d\n", SumLoop(n) ) ;
-    printf( "SumRecur(n) = %d\n", SumRecur(n)) ;
+    printf( "SumLoop(n) = %ld\n", SumLoop(targetValue) ) ;
+    printf("SumRecur(n) = %ld\n", SumRecur(targetValue) ) ;
     
     return 0 ;
 }
 
-long SumLoop( int n ) {
-    long sum = 0 ;
-    int i ;
-    
-    for ( i = 1; i <= n; i++ ) {
-        sum = sum + i ;
+long SumLoop( int maxNumber ) {
+    if ( maxNumber <= 0 ) {
+        return 0 ;
     }
-    
-    return sum ;
+
+    long totalSum ;
+    int currentStep ;
+
+    totalSum = 0 ;
+    currentStep = 1 ;
+
+    while ( currentStep <= maxNumber ) {
+        totalSum = totalSum + currentStep ;
+        currentStep = currentStep + 1 ;
+    }
+
+    return totalSum ;
 }
 
-long SumRecur( int n) {
-    if ( n == 1 ) {
+long SumRecur( int maxNumber ) {
+    if ( maxNumber <= 0 ) {
+        return 0 ;
+    }
+
+    if ( maxNumber == 1 ) {
         return 1 ;
     }
-    
-    return n + SumRecur( n - 1 ) ;
+
+    int previousStep ;
+    previousStep = maxNumber - 1 ;
+
+    return maxNumber + SumRecur( previousStep );
 }
